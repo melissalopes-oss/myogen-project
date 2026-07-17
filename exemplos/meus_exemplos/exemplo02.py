@@ -1,4 +1,3 @@
-
 # EXEMPLO 02 - GERAÇÃO DE TRENS DE DISPARO COM INJEÇÃO DE CORRENTE
 
 from pathlib import Path
@@ -8,18 +7,18 @@ import numpy as np
 import quantities as pq
 import seaborn as sns
 from matplotlib import pyplot as plt
-from neo import Block, Segment, SpikeTrain
+from neo import Block, Segment, SpikeTrain, AnalogSignal
 from neuron import h
 from scipy.ndimage import gaussian_filter1d
 
-from myogen import get_random_generator
+# Carrega o .dll manualmente ANTES de qualquer coisa do MyoGen
+h.nrn_load_dll(r'C:\Users\ctagu\.gemini\antigravity\scratch\myogen-project\.venv\Lib\site-packages\myogen\simulator\nmodl_files\nrnmech.dll')
+
 from myogen.simulator.neuron.populations import AlphaMN__Pool
-from myogen.utils.currents import create_trapezoid_current
 from myogen.utils.neuron.inject_currents_into_populations import (
     inject_currents_and_simulate_spike_trains,
     inject_currents_into_populations,
 )
-from myogen.utils.nmodl import load_nmodl_mechanisms
 
 plt.style.use("fivethirtyeight")
 plt.style.use("fivethirtyeight")
@@ -58,8 +57,6 @@ def rasterplot_rates(spiketrains, filter_function=None):
 
 # CRIANDO O POOL DE MOTONEURÔNIOS
 
-load_nmodl_mechanisms()
-
 save_path = Path("./results")
 save_path.mkdir(exist_ok=True)
 
@@ -74,20 +71,17 @@ motor_neuron_pools = [
 
 timestep = 0.05 * pq.ms
 simulation_time = 1000 * pq.ms
-
-rise_time_ms = list(get_random_generator().uniform(100, 500, size=n_pools)) * pq.ms
-plateau_time_ms = list(get_random_generator().uniform(1000, 2000, size=n_pools)) * pq.ms
-fall_time_ms = list(get_random_generator().uniform(1000, 2000, size=n_pools)) * pq.ms
-
-input_current__AnalogSignal = create_trapezoid_current(
-    n_pools,
-    int(simulation_time / timestep),
-    timestep,
-    amplitudes__nA=[15.0 * pq.nA] * n_pools,
-    rise_times__ms=rise_time_ms,
-    plateau_times__ms=plateau_time_ms,
-    fall_times__ms=fall_time_ms,
-    delays__ms=500.0 * pq.ms,
+n_steps = int(simulation_time / timestep)
+amplitude_nA = 8.0
+offset_nA = 10.0
+frequency_hz = 2.0
+t = np.linspace(0, float(simulation_time.rescale(pq.s)), n_steps)
+sine_wave = offset_nA + amplitude_nA * np.sin(2 * np.pi * frequency_hz * t)
+sine_current = sine_wave[:, np.newaxis] * np.ones((1, n_pools))
+input_current__AnalogSignal = AnalogSignal(
+    sine_current * pq.nA,
+    sampling_rate=(1 / timestep).rescale(pq.Hz),
+    t_start=0 * pq.s,
 )
 
 print(
