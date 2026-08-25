@@ -1,0 +1,120 @@
+#Exemplo COMBINADO 6 + 8
+
+#ideia: mostrar a cadeia completa comando neural -> sinal elétrico 
+#comando neural -> força mecânica, a partir do MESMO evento simulado.
+#depende dos arquivos gerados nos exemplos 1, 3 e 5
+
+from pathlib import Path
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import quantities as pq
+from neuron import h
+
+from myogen import simulator
+from myogen.simulator.core.force.force_model import ForceModel
+from myogen.utils.neo import signal_to_grid
+from myogen.utils.nmodl import load_nmodl_mechanisms
+from myogen.utils.types import CURRENT__AnalogSignal, SPIKE_TRAIN__Block
+
+plt.style.use("fivethirtyeight")
+
+
+# Load NMODL Mechanisms
+h.load_file("stdrun.hoc")
+load_nmodl_mechanisms()
+
+
+# Load Necessary Models (dos exemplos 1, 3 e 5)
+save_path = Path("./results")
+
+recruitment_thresholds = joblib.load(save_path / "thresholds.pkl")
+spike_train__Block: SPIKE_TRAIN__Block = joblib.load(save_path / "sine_dd_spike_trains.pkl")
+input_current__AnalogSignal: CURRENT__AnalogSignal = joblib.load(
+    save_path / "sine_drive_pattern.pkl"
+)
+surface_emg: simulator.SurfaceEMG = joblib.load(save_path / "surface_emg.pkl")
+
+
+# Parte 1 - Gerar o sinal de EMG (igual ao exemplo 6)
+print("Gerando sinal de EMG...")
+
+surface_emg_signals = surface_emg.simulate_surface_emg(spike_train__Block=spike_train__Block)
+
+noisy_surface_emg__Block = surface_emg.add_noise(snr__dB=5.0)
+noisy_signal = noisy_surface_emg__Block.groups[0].segments[0].analogsignals[0]
+emg_grid = signal_to_grid(noisy_signal)  # (tempo, linhas, colunas)
+emg_signal = emg_grid[:, 2, 2]  # eletrodo central da grade
+
+print("Sinal de EMG gerado!")
+
+
+# Parte 2 - Gerar a Força (igual ao exemplo 8, mas com os
+# MESMOS 10 motoneurônios do exemplo 1)
+print("\nGerando força muscular...")
+
+recording_frequency__Hz = 2048 * pq.Hz
+longest_duration_rise_time__ms = 90.0 * pq.ms
+contraction_time_range = 3
+
+force_model = ForceModel(
+    recruitment_thresholds=recruitment_thresholds,  # os MESMOS 10 limiares do exemplo 1
+    recording_frequency__Hz=recording_frequency__Hz,
+    longest_duration_rise_time__ms=longest_duration_rise_time__ms,
+    contraction_time_range_factor=contraction_time_range,
+)
+
+# Gera a força usando os MESMOS spike trains usados no EMG
+force_output = force_model.generate_force(spike_train__Block=spike_train__Block)
+
+# Adiciona ruído realista à força
+noise_level = 0.015
+noisy_force = force_output.magnitude[:, 0] + np.random.randn(
+    len(force_output.magnitude[:, 0])
+) * noise_level * np.mean(force_output.magnitude[:, 0])
+
+print("Força muscular gerada!")
+
+# Visualização Combinada: Corrente + EMG + Força
+# 3 gráficos empilhados, todos compartilhando o mesmo eixo de tempo,
+# mostrando a cadeia completa: comando neural -> EMG -> Força
+
+fig, axes = plt.subplots(3, 1, figsize=(12, 12), sharex=True)
+
+#Gráfico 1: Corrente de entrada (comando do "cérebro", senoide)
+axes[0].plot(
+    input_current__AnalogSignal.times.rescale(pq.s).magnitude,
+    input_current__AnalogSignal[:, 0].magnitude,
+    linewidth=2,
+    color="tab:blue",
+)
+axes[0].set_ylabel("Drive (pps)")
+axes[0].set_title("Comando Neural (Drive Senoidal)")
+axes[0].grid(True, alpha=0.3)
+
+#Gráfico 2: Sinal de EMG resultante
+emg_time = np.arange(len(emg_signal)) / surface_emg.sampling_frequency__Hz
+axes[1].plot(emg_time, emg_signal, linewidth=1, color="tab:red", alpha=0.8)
+axes[1].set_ylabel("EMG (mV)")
+axes[1].set_title("Sinal de EMG de Superfície (eletrodo central)")
+axes[1].grid(True, alpha=0.3)
+
+#Gráfico 3: Força muscular resultante
+axes[2].plot(
+    force_output.times.rescale(pq.s).magnitude,
+    noisy_force,
+    linewidth=1,
+    color="tab:green",
+    alpha=0.8,
+)
+axes[2].set_xlabel("Time (s)")
+axes[2].set_ylabel("Force (a.u.)")
+axes[2].set_title("Força Muscular Gerada")
+axes[2].grid(True, alpha=0.3)
+
+plt.suptitle("Cadeia Completa: Comando Neural → EMG → Força", fontsize=16)
+plt.tight_layout()
+plt.show()
+
+print("\n[DONE] Simulação combinada (EMG + Força) completa!")
