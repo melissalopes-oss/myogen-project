@@ -67,6 +67,9 @@ def rodar_simulacao(caminho_yaml: str):
         mode="combined",
         deluca__slope=5,
     )
+    fator_forca = parametros["forca_minima_N"]/recruitment_thresholds[0]
+    recruitment_thresholds = recruitment_thresholds * fator_forca
+    print(recruitment_thresholds[0])
 
     motor_neuron_pool = AlphaMN__Pool(
         recruitment_thresholds__array=recruitment_thresholds,
@@ -280,4 +283,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     caminho = sys.argv[1]
+    print(caminho)
     rodar_simulacao(caminho)

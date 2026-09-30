@@ -26,8 +26,8 @@ muscle: simulator.Muscle = joblib.load(save_path / "muscle_model.pkl")
 # Create Surface EMG Model
 
 electrode_array_monopolar = simulator.SurfaceElectrodeArray(
-    num_rows=5,
-    num_cols=5,
+    num_rows=3,
+    num_cols=3,
     inter_electrode_distances__mm=5 * pq.mm,
     electrode_radius__mm=5 * pq.mm,
     differentiation_mode="monopolar",

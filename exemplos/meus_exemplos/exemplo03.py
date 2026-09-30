@@ -76,7 +76,8 @@ time_s = time_array.rescale(pq.s).magnitude
 # Construir a onda senoidal usando só números puros (sem unidade ainda)
 offset_value = dd_offset__pps.magnitude.item()
 amplitude_value = dd_amplitude__pps.magnitude.item()
-sine_drive_raw = offset_value + amplitude_value * np.sin(2 * np.pi * frequency_hz * time_s)
+#sine_drive_raw = offset_value + amplitude_value * np.sin(2 * np.pi * frequency_hz * time_s)
+sine_drive_raw = offset_value + amplitude_value * np.sin(2 * np.pi * frequency_hz * time_s)*np.sin(2 * np.pi * 20 * time_s)
 
 # Garantir que não fica negativo (drive não pode ser negativo) - ainda em números puros
 sine_drive_raw = np.clip(sine_drive_raw, 0, None)
