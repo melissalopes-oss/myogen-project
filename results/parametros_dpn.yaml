@@ -1,0 +1,27 @@
+# Parâmetros da condição DPN (neuropatia diabética periférica)
+# Baseado na Tabela 1 do artigo
+
+condicao: "DPN"
+
+# Unidade motora (força e tempo de contração)
+# Reduzidos por um fator de 1.4 em relação ao Normal
+forca_minima_N: 0.0286
+forca_maxima_N: 2.86
+razao_forca: 100.0  # a RAZÃO entre força mínima e máxima se mantém igual ao Normal
+
+# Tempo de contração AUMENTADO pelo mesmo fator de 1.4 (unidades mais lentas)
+tempo_contracao_minimo_ms: 35
+tempo_contracao_maximo_ms: 154   # -> vai para longest_duration_rise_time__ms
+fator_espalhamento_tempo: 3.0    # mesmo valor do Normal
+
+# --- Motoneurônio (velocidade de condução do nervo) ---
+# Reduzida por um fator de 0.85 em relação ao Normal
+velocidade_conducao_minima_m_s: 37.4
+velocidade_conducao_maxima_m_s: 45.05
+
+# --- Comando descendente (drive cortical) ---
+# Reduzido pela metade (400 -> 200) em relação ao Normal
+numero_neuronios_corticoespinhais: 200
+
+#Parâmetros fixos
+numero_motoneuronios: 250

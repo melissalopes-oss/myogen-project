@@ -1,0 +1,25 @@
+# Parâmetros da condição NORMAL (saudável)
+# Tabela 1
+
+condicao: "Normal"
+
+forca_minima_N: 0.04
+forca_maxima_N: 4.0
+razao_forca: 100.0  # forca_maxima_N / forca_minima_N -> equivalente ao recruitment_range do MyoGen
+
+# No artigo: tempo de contração mínimo/máximo (ms)
+# No MyoGen: 'longest_duration_rise_time__ms' corresponde ao tempo de
+# contração da unidade motora MAIS LENTA -> usar o valor MÁXIMO da tabela
+tempo_contracao_minimo_ms: 25
+tempo_contracao_maximo_ms: 110   # -> vai para longest_duration_rise_time__ms
+fator_espalhamento_tempo: 3.0    # contraction_time_range_factor (não está na Tabela 1; valor padrão do MyoGen)
+
+# --- Motoneurônio (velocidade de condução do nervo) ---
+velocidade_conducao_minima_m_s: 44
+velocidade_conducao_maxima_m_s: 53
+
+# --- Comando descendente (drive cortical) ---
+numero_neuronios_corticoespinhais: 400
+
+# Parâmetros fixos
+numero_motoneuronios: 250
