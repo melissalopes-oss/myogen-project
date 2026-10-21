@@ -68,6 +68,7 @@ def simular_hd_semg(caminho_yaml: str):
         radius_bone__mm=1.0 * pq.mm,
         fiber_density__fibers_per_mm2=fiber_density,
         fat_thickness__mm=3 * pq.mm,
+	radius__mm = muscle_radius, 
         autorun=True,
     )
     print(f"   Total de fibras musculares geradas: {sum(muscle.resulting_number_of_innervated_fibers)}")
@@ -94,7 +95,7 @@ def simular_hd_semg(caminho_yaml: str):
         muscle_model=muscle,
         electrode_arrays=[electrode_grid],
         sampling_frequency__Hz=sampling_frequency,
-        sampling_points_in_t_and_z_domains=128,  # resolução otimizada
+        sampling_points_in_t_and_z_domains=256,  # 128 gera matriz singular no modelo de volume condutor -> MUAPs nulos
         sampling_points_in_theta_domain=16,
         MUs_to_simulate=list(range(min(20, parametros["numero_motoneuronios"]))),  # primeiras 20 UMs
     )
