@@ -11,7 +11,7 @@ from neo import AnalogSignal, Block, Segment, SpikeTrain
 from neuron import h
 from tqdm import tqdm
 
-from myogen import get_random_generator, simulator
+from myogen import get_random_generator, set_random_seed, simulator
 from myogen.simulator.core.force.force_model import ForceModel
 from myogen.simulator.neuron import Network
 from myogen.simulator.neuron.populations import AlphaMN__Pool, DescendingDrive__Pool
@@ -48,10 +48,18 @@ def carregar_parametros(caminho_yaml: str) -> dict:
 def rodar_simulacao(caminho_yaml: str):
     parametros = carregar_parametros(caminho_yaml)
     condicao_nome = parametros["condicao"]
+
+    # --- CONTROLE DA SEED (PESSOAS DIFERENTES) ---
+    seed = parametros.get("seed", 180319)
+    set_random_seed(seed)
+    np.random.seed(seed)
+    print(f"[SEED] Utilizando a semente aleatória: {seed}")
+    # ---------------------------------------------
+
     print(f"\n{'='*60}")
     print(f"Iniciando Simulação: {condicao_nome}")
     print(f"{'='*60}\n")
-
+    
     load_nmodl_mechanisms()
     save_path = Path("./results")
     save_path.mkdir(exist_ok=True)

@@ -25,3 +25,4 @@ numero_neuronios_corticoespinhais: 200
 
 #Parâmetros fixos
 numero_motoneuronios: 250
+seed: 2
